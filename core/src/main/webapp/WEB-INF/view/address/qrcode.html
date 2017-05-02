@@ -1,0 +1,64 @@
+<#--
+        * description:生成二维码页面
+        * version: 1.0
+        * author:lanyu
+        *
+        -->
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title> </title>
+    <script src="${base.contextPath}/resources/js/qrcode.js"></script>
+    <script type="text/javascript">
+        window.onload = function(){
+
+            // 二维码对象
+            var qrcode;
+
+            // 默认设置
+            var content;
+            var size=180;
+             content='${RequestParameters.phone}';
+
+            // 设置点击事件
+
+
+                // 获取内容
+                //content = document.getElementById("content").value;
+                content = content.replace(/(^\s*)|(\s*$)/g, "");
+
+                // 获取尺寸
+                //size = document.getElementById("size").value;
+                // 检查内容
+                if(content==''||content==null){
+                   $("#qrcode").html("手机号为空！！");
+                    return false;
+                }
+                // 检查尺寸
+                if(!/^[0-9]*[1-9][0-9]*$/.test(size)){
+                    alert('请输入正整数');
+                    return false;
+                }
+                if(size<100 || size>500){
+                    alert('尺寸范围在100～500');
+                    return false;
+                }
+                // 清除上一次的二维码
+                if(qrcode){
+                    qrcode.clear();
+                }
+                // 创建二维码
+                qrcode = new QRCode(document.getElementById("qrcode"), {
+                  width:size,
+                    height:size
+
+                });
+                qrcode.makeCode(content);
+        }
+    </script>
+</head>
+
+<body>
+<div id="qrcode"></div>
+</body>
+</html>

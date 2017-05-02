@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hand.address.mapper.addressListMapper">
+    <update id="myUpdate" parameterType="com.hand.address.dto.addressList">
+        UPDATE address_list
+        <if test="name!=null">SET name=#{name}</if>
+        <if test="name!=null">SET sex=#{sex}</if>
+        <if test="name!=null">SET phone=#{phone}</if>
+        <if test="name!=null">SET email=#{email}</if>
+        <if test="name!=null">SET address=#{address}</if>
+        SET object_version_number =object_version_number+1
+        WHERE id=#{id} AND object_version_number=#{objectVersionNumber}
+    </update>
+</mapper>

@@ -1,0 +1,347 @@
+<#--
+        * description: 邮件发送页面
+        * version: 1.0
+        * author:lanyu
+        *
+        -->
+
+    <#include "../include/header.html">
+        <body>
+        <script src="${base.contextPath}/lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+        <script>
+            viewModel = new kendo.observable({
+                model: {}
+            });
+            var attachmentModel = kendo.observable({
+                model: {},
+                queryResource: function () {
+                    $('#chooseGrid').data('kendoGrid').dataSource.page(1);
+                }
+            });
+            var addAttachModel = kendo.observable({
+                saveFunction: function () {
+                    var selection = $("#attachGrid").data("kendoGrid").dataSource.data();
+                    var users = [];
+                    for (var i = 0; i < selection.length; i++) {
+                        users[i] = selection[i].fileId;
+                    }
+                    viewModel.model.set("attachments",users);
+                    $("#attachmentWin").data("kendoWindow").close();
+                }
+            });
+
+
+        </script>
+        <center>
+        <form class="form-horizontal" id="form-query1" style="width:100%">
+            <div class="panel-body">
+                <div class="form-group">
+                    <div class="col-sm-7">
+                        <label class="col-sm-4 control-label">账户代码:</label>
+                        <input id="accountCode1" type=text data-bind="value:model.accountCode"
+                               style="width:50%"
+                               required
+                               validationMessage="{0}不能为空！"/>
+                    </div>
+                    <script>
+                        $("#accountCode1").kendoLov($.extend({"queryColumns":1,"height":200,"width":500,"readonly":true,"dataValueField":"accountCode","dataTextField":"userName","form":"<div class='form-group' style='width:100%'><label class='col-sm-3 control-label' >账户代码</label><div class='col-sm-9 k-lov-input' ><input name='accountCode' data-bind='value:data.accountCode' style='width:100%'></div></div><div class='form-group' style='width:100%'><label class='col-sm-3 control-label' >messageaccount.name</label><div class='col-sm-9 k-lov-input' ><input name='userName' data-bind='value:data.userName' style='width:100%'></div></div>","formItemMap":{"accountCode":{"type":"kendoMaskedTextBox"},"userName":{"type":"kendoMaskedTextBox"}},"grid":{"height":200,"url":"/common/lov/MESSAGE_ACCOUNT","columns":[{"field":"accountCode","title":"账户代码","width":200,"attributes":{"style":"text-align:center"}},{"field":"userName","title":"messageaccount.name","width":200,"attributes":{"style":"text-align:center"}}]}}, {}))
+                    </script>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-7">
+                        <label class="col-sm-4 control-label">收&nbsp;件&nbsp;人:</label>
+                        <input id="receivers1" type="text" data-bind="value:model.receivers='${RequestParameters.email}'"
+                               style="width:50%"
+                               class="k-textbox" required
+                               validationMessage="{0}不能为空！"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-7">
+                        <label class="col-sm-4 control-label">主&nbsp;&nbsp;&nbsp;&nbsp;题:</label>
+                        <input id="subject" type="text" data-bind="value:model.subject"
+                               style="width:50%" class="k-textbox"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">内&nbsp;&nbsp;&nbsp;&nbsp;容:</label>
+                    <div class="col-sm-7">
+                                            <textarea id="content" type="text" data-bind="value:model.content"
+                                                      style="width:50%;height: 200px;margin-left:40px;" required
+                                                      validationMessage="{0}不能为空！"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-5 control-label"><div><a style="text-decoration:underline" href="javascript:void(0)" onclick="addAttachment()">添加附件</a></div>
+                        </label>
+                        <div class="col-sm-4">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-footer text-center" id="toolbar1">
+                        <span class="btn btn-success"
+                              onclick="submitform('custom')"><i class="fa fa-save" style="margin-right:3px;"></i>提交</span>
+                </div>
+        </form>
+        </center>
+                                <script>kendo.bind($('#form-query1'), viewModel);</script>
+
+        <div id="attachmentWin" style="display: none">
+            <div class="pull-left" id="toolbar-btn" style="padding-bottom:10px;">
+                <span class="btn btn-success" style="float:left;margin-right:5px;"
+                      onclick="openChooseAttachmentWin()"><@spring.message "选择附件"/></span>
+            </div>
+
+            <div style="clear:both;">
+                <div id="attachGrid" style="clear: both"></div>
+            </div>
+
+            <div class="col-xs-10" style="margin-top: 20px">
+                <div class="form-group">
+                    <div class="col-xs-5" style="float:right">
+                        <span id="saveForm" class="btn btn-success k-grid-save-changes"
+                              style="float:center;margin-right:5px;"
+                              data-bind="click:saveFunction"><@spring.message "hap.save"/></span>
+                        <script>kendo.bind($('#saveForm'), addAttachModel);</script>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="chooseAttachmentWin" style="display: none">
+            <div class="pull-left" id="toolbar-btn1" style="padding-bottom:10px;">
+                <span onclick="saveAttach()" class="btn btn-primary k-grid-add" style="float:left;margin-right:5px;">添加</span>
+            </div>
+            <div style="clear:both;">
+                <div id="chooseGrid" style="clear: both"></div>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+
+            function openChooseAttachmentWin() {
+                var win = $("#chooseAttachmentWin").data("kendoWindow");
+                win.center().open();
+                Hap.autoResizeGrid("#chooseGrid");
+            }
+
+            function saveAttach() {
+                var selection = $('#chooseGrid').data('kendoGrid').selectedDataItems();
+                for (var i = 0; i < selection.length; i++) {
+                    if($("#attachGrid").data("kendoGrid").dataSource.data().length==0){
+                        var userGridData={};
+                        userGridData["fileName"]=selection[i].fileName;
+                        userGridData["fileType"]=selection[i].fileType;
+                        userGridData["fileSize"]=selection[i].fileSize;
+                        userGridData["fileId"]=selection[i].fileId;
+                        //  userGridDatas[i]=userGridData;
+                        $("#attachGrid").data("kendoGrid").dataSource.add(userGridData);
+                    }else{
+                        for(var j=0;j<$("#attachGrid").data("kendoGrid").dataSource.data().length;j++){
+                            if($("#attachGrid").data("kendoGrid").dataSource.data()[j].fileId!=selection[i].fileId){
+                                var userGridData={};
+                                userGridData["fileName"]=selection[i].fileName;
+                                userGridData["fileType"]=selection[i].fileType;
+                                userGridData["fileSize"]=selection[i].fileSize;
+                                userGridData["fileId"]=selection[i].fileId;
+                                $("#attachGrid").data("kendoGrid").dataSource.add(userGridData);
+                            }
+                        }
+                    }
+                }
+
+                $("#chooseAttachmentWin").data("kendoWindow").close();
+
+            }
+
+            $("#chooseAttachmentWin").kendoWindow({
+                actions: ["Close"],
+                title: $l('<@spring.message "user.allocationrole"/>'),
+                draggable: true,
+                width:800,
+                height: 400,
+                resizable: false,
+                //初始化时设置为隐藏状态
+                visible: false,
+            });
+            $("#attachmentWin").kendoWindow({
+                actions: ["Close"],
+                title: $l('<@spring.message "user.allocationrole"/>'),
+                draggable: true,
+                width: 800,
+                height:400 ,
+                resizable: false,
+                //初始化时设置为隐藏状态
+                visible: false,
+                close: refreshRoleGrid
+            });
+
+            function refreshRoleGrid() {
+                $("#chooseGrid").data('kendoGrid').dataSource.page(1);
+            }
+
+
+            function addAttachment(){
+                var win = $("#attachmentWin").data("kendoWindow");
+                win.center().open();
+                Hap.autoResizeGrid("#attachGrid");
+            }
+
+            function submitform(mode) {
+                viewModel.model.set("mode",mode);
+                $.ajax({
+                    url: '${base.contextPath}/sys/message/sendTest',
+                    type: "POST",
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: kendo.stringify(viewModel.model),
+                    success: function (args) {
+                        if (args.success) {
+                            alert('send success');
+                        }
+                    }
+                });
+                /*      var formData = viewModel.model.toJSON();
+                 for (var k in formData) {
+                 viewModel.model.set(k, null);
+                 }*/
+                viewModel.model.set("attachments",null);
+                $("#attachGrid").data("kendoGrid").dataSource.data([]);
+            }
+
+            function deleteDataSource(e) {
+                var grid = $("#attachGrid").data("kendoGrid");
+                grid.dataSource.remove(grid.dataSource.get(e));
+            }
+
+
+            modalDataSource = new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: "${base.contextPath}/sys/attach/file/queryFiles",
+                        type: "POST",
+                        dataType: "json"
+                    },
+                    parameterMap: function (options, type) {
+                        if (type !== "read" && options.models) {
+                            var datas = Hap.prepareSubmitParameter(options, type);
+                            return kendo.stringify(datas);
+                        } else if (type === "read") {
+                            return Hap.prepareQueryParameter(attachmentModel.model.toJSON(), options);
+                        }
+                    }
+                },
+                batch: true,
+                serverPaging: true,
+                pageSize: 10,
+                schema: {
+                    data: 'rows',
+                    total: 'total',
+                    model: {
+                        //如果想动态的添加，需要这边加上唯一标识
+                        id: "fileId"
+                    }
+                }
+            });
+
+            $("#chooseGrid").kendoGrid({
+                dataSource: modalDataSource,
+                navigatable: false,
+                height: '100%',
+                resizable: true,
+                scrollable: true,
+                selectable: 'multiple, rowbox',
+                pageable: {
+                    //可以选择一个页面多少条数据
+                    pageSizes: [5, 10, 20, 50],
+                    refresh: true,
+                    buttonCount: 5
+                },
+                columns: [
+                    {
+                        field: "fileName",
+                        title: '<@spring.message "sysfile.filename"/>',
+                        width: 300
+                    },
+                    {
+                        field: "fileSize",
+                        title: '<@spring.message "sysfile.filesize"/>',
+                        width: 100,
+                    },
+                    {
+                        field: "fileType",
+                        title: '<@spring.message "sysfile.filetype"/>',
+                        width: 100,
+                    },
+
+                ],
+                editable: false,
+                dataBound: function () {
+                    var view = this.dataSource.view();
+                    this.items().each(function (index, row) {
+                        kendo.bind(row, view[index]);
+                    });
+                }
+
+            }).data("kendoGrid")
+
+
+            $("#attachGrid").kendoGrid({
+                dataSource: {
+                    data: {},
+                    schema: {
+                        data: "data",
+                        total: "total",
+                        model: {
+                            id: "fileId",
+                        }
+                    }
+                },
+                navigatable: false,
+                height: '200px',
+                resizable: true,
+                scrollable: true,
+                pageable: {
+                    //可以选择一个页面多少条数据
+                    refresh: true
+                },
+                columns: [
+                    {
+                        field: "fileName",
+                        title: '<@spring.message "sysfile.filename"/>',
+                        width: 300
+                    },
+                    {
+                        field: "fileSize",
+                        title: '<@spring.message "sysfile.filesize"/>',
+                        width: 100,
+                    },
+                    {
+                        field: "fileType",
+                        title: '<@spring.message "sysfile.filetype"/>',
+                        width: 100,
+                    },
+                    {
+                        title: '<@spring.message "hap.delete"/>',
+                        width:100,
+                        template:function(dataItem){ return '<span  onclick="deleteDataSource('+dataItem.fileId+')" class="btn btn-danger"><@spring.message "hap.delete"/></span>'}
+                    }
+
+                ],
+                editable: false,
+                dataBound: function () {
+                    var view = this.dataSource.view();
+                    this.items().each(function (index, row) {
+                        kendo.bind(row, view[index]);
+                    });
+                }
+
+            }).data("kendoGrid");
+
+            function cleanAttach() {
+                viewModel.model.set("attachments",null);
+                $("#attachGrid").data("kendoGrid").dataSource.data([]);    }
+
+        </script>
+        </body>
+        </html>
